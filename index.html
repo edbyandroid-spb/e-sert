@@ -19,11 +19,14 @@
 :root{--bg:#F4EEE4;--card:#FFFDF8;--olive:#474A30;--olive2:#5F6244;--gold:#C9AE74;--line:#E2D6BF;--ok:#3F5F2E;--warn:#8A4B2D}
 *{box-sizing:border-box}
 html,body{margin:0;background:var(--bg);color:var(--olive);font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;font-size:16px;line-height:1.4}
-.wrap{max-width:1100px;margin:0 auto;padding:16px 16px 96px}
-h1{font-size:22px;margin:4px 0 10px}
+.wrap{max-width:1100px;margin:0 auto;padding:12px 16px 96px}
+h1{font-size:20px;margin:2px 0 8px}
 h2{font-size:18px;margin:0 0 8px}
 .grid{display:grid;gap:16px}
-@media(min-width:900px){.grid{grid-template-columns:420px 1fr;align-items:start}.sticky{position:sticky;top:12px}.wrap{padding-bottom:24px}}
+#tab-issue{display:grid;gap:16px;grid-template-areas:"form" "prev" "act"}
+#formCard{grid-area:form}#previewBox{grid-area:prev}#actCard{grid-area:act}
+#tab-issue.paper{grid-template-areas:"form" "act"}
+@media(min-width:900px){#tab-issue{grid-template-columns:420px 1fr;grid-template-areas:"form prev" "act prev";grid-template-rows:auto 1fr;align-items:start}#tab-issue.paper{grid-template-columns:1fr;grid-template-areas:"form" "act"}.sticky{position:sticky;top:12px}.wrap{padding-bottom:24px}}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}
 label{display:block;font-weight:600;font-size:14px;margin:12px 0 4px}
 label small{font-weight:400;color:var(--olive2)}
@@ -38,7 +41,7 @@ canvas{width:100%;height:auto;border-radius:10px;border:1px solid var(--line);ba
 .note{font-size:13px;color:var(--olive2)}
 .numrow{display:flex}.pfx{display:flex;align-items:center;padding:0 12px;border:1px solid var(--gold);border-right:0;border-radius:10px 0 0 10px;background:#EFE6D2;font-weight:700;white-space:nowrap}.numrow input{border-radius:0 10px 10px 0}
 .fatal{display:none;background:#FFF3E8;border:1px solid var(--warn);color:var(--warn);border-radius:12px;padding:14px;font-size:15px}
-footer{margin-top:22px;text-align:center}
+footer{margin-top:14px;text-align:center}
 footer p{margin:4px 0}
 footer a{color:var(--olive);font-weight:600}
 .hidden{display:none!important}
@@ -70,7 +73,22 @@ nav.tabs button[aria-selected=true]{color:var(--olive);box-shadow:inset 0 3px 0 
 .chip .cn{font-size:22px;line-height:1.1}
 .chip .cs{font-size:11px;font-weight:600;line-height:1.1}
 .chip .cp{font-size:10px;font-weight:400;opacity:.8;line-height:1}
-.chip.sel{border-color:var(--olive);transform:translateY(-3px)}
+.chip{position:relative}
+.chip.paper{border:2px dashed rgba(71,74,48,.6)}
+.chip.sel::after{content:"";position:absolute;left:8px;right:8px;bottom:3px;height:4px;border-radius:2px;background:#B00020;box-shadow:0 0 0 1.5px #fff}
+.chip .ck{font-size:10px;font-weight:700;opacity:.75;line-height:1}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin:0 0 6px}
+.stat{border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:#fff}
+.stat b{display:block;font-size:20px;line-height:1.1}.stat span{font-size:12px;color:var(--olive2)}
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:76px;max-width:92vw;background:var(--olive);color:var(--bg);padding:10px 16px;border-radius:14px;z-index:20;opacity:0;pointer-events:none;transition:opacity .2s;font-weight:600;text-align:center}
+#toast.on{opacity:1}
+@media(min-width:900px){#toast{bottom:24px}}
+.done{border:1px solid #9DBB8B;background:#E3F0DA;color:#27401B;border-radius:10px;padding:10px;margin-bottom:8px;font-size:14px}
+.verdict{border-radius:10px;padding:8px 10px;margin:8px 0;font-size:14px}
+.verdict.good{background:#E3F0DA;color:#27401B}.verdict.bad{background:#F8D9D4;color:#5C130B}
+.cmp{width:100%;border-collapse:collapse;font-size:14px;margin:6px 0}.cmp td,.cmp th{border:1px solid var(--line);padding:4px 8px;text-align:left}
+button.fin{background:var(--olive);color:var(--bg)}
+footer p{font-size:12px}
 .s-ok{background:#E3F0DA;color:#27401B}
 .s-warn{background:#FAE9A0;color:#4A3800}
 .s-late{background:#F0A99E;color:#4A0F08}
@@ -96,11 +114,12 @@ textarea{min-height:64px;resize:vertical}
 <button type="button" role="tab" id="t-reg" data-tab="reg" aria-selected="false">Реестр</button>
 <button type="button" role="tab" id="t-more" data-tab="more" aria-selected="false">Ещё</button>
 </nav>
+<div class="bk warn hidden" id="emptyBn" role="status"></div>
 <div class="bk hidden" id="bk" role="status"></div>
 
 <!-- ВЫПУСТИТЬ -->
-<section id="tab-issue" class="grid" aria-labelledby="t-issue">
-<div class="card">
+<section id="tab-issue" aria-labelledby="t-issue">
+<div class="card" id="formCard">
 <div class="kind" role="radiogroup" aria-label="Вид сертификата">
 <label><input type="radio" name="kind" value="e" checked><span>Электронный</span></label>
 <label><input type="radio" name="kind" value="paper"><span>Бумажный</span></label>
@@ -109,13 +128,10 @@ textarea{min-height:64px;resize:vertical}
 <label for="theme">Тема</label>
 <select id="theme"></select>
 </div>
-
 <label for="to">Для кого <small>(так, как после «Для:», например «Марии»)</small></label>
 <input id="to" maxlength="40" placeholder="Например, Марии" autocomplete="off">
-
 <label for="from">От кого <small>(необязательно, как после «От:», например «Анны»)</small></label>
 <input id="from" maxlength="40" placeholder="Например, Анны" autocomplete="off">
-
 <label for="massage" style="margin-top:24px">Вид массажа</label>
 <select id="massage">
 <option value="">Выберет получатель при записи</option>
@@ -123,35 +139,38 @@ textarea{min-height:64px;resize:vertical}
 <option value="Кисточками (Египетский)">Кисточками · Египетский</option>
 <option value="Ребозо (Мексиканский)">Ребозо · Мексиканский</option>
 </select>
-
 <label for="date">Дата продажи</label>
 <input id="date" type="date">
 <div class="note" id="tillNote"></div>
-
 <label for="nn" style="margin-top:20px">Номер сертификата</label>
-<div class="numrow"><span class="pfx" id="pfx"></span><input id="nn" type="number" min="1" max="99" inputmode="numeric" placeholder="NN"></div>
+<div class="numrow"><span class="pfx" id="pfx"></span><input id="nn" type="text" inputmode="numeric" maxlength="2" placeholder="NN" autocomplete="off"></div>
 <div class="note" id="nnHint"></div>
 <div class="msg err" id="nnWarn"></div>
-
-<button id="btnRec">Записать в учёт</button>
+</div>
+<div class="sticky" id="previewBox">
+<div class="card"><canvas id="cv" width="2160" height="2700"></canvas></div>
+</div>
+<div class="card" id="actCard">
+<div id="doneBox" class="done hidden" role="status"></div>
 <div id="imgBtns">
 <button id="btnSave" class="sec">Сохранить сертификат (картинка)</button>
 <button id="btnShareNow" class="sec hidden">Отправить сертификат…</button>
 <button id="btnCap" class="sec">Скопировать подпись для Telegram</button>
 </div>
+<button id="btnRec" class="fin">Последний шаг: записать в учёт</button>
+<button id="btnBackReg" class="sec hidden">Вернуться к карточке в реестре</button>
+<button id="btnNew" class="sec hidden">Новый сертификат</button>
 <div class="msg" id="msg" aria-live="polite"></div>
 <div class="msg err" id="warn"></div>
-<p class="note" id="imgNote">Картинка JPG 2160×2700 сохраняется в «Загрузки». В Telegram отправляйте её «как файл» (скрепка → «Файл»), иначе она сожмётся.</p>
-</div>
-
-<div class="sticky" id="previewBox">
-<div class="card"><canvas id="cv" width="2160" height="2700"></canvas></div>
+<p class="note" id="imgNote">Порядок: сохраните картинку → отправьте её (в Telegram — «как файл») → в конце запишите сертификат в учёт.</p>
 </div>
 </section>
 
 <!-- РЕЕСТР -->
 <section id="tab-reg" class="hidden" aria-labelledby="t-reg">
 <div class="card">
+<div class="stats" id="stats"></div>
+<div class="note" id="lastChg"></div>
 <div class="search">
 <div>
 <label for="q" style="margin-top:0">Номер сертификата <small>(две цифры)</small></label>
@@ -186,10 +205,10 @@ textarea{min-height:64px;resize:vertical}
 </div>
 </section>
 
+<div id="toast" role="status" aria-live="polite"></div>
 <footer>
-<p class="note" id="verNote"></p>
-<p class="note">Шрифты Marck Script и Cormorant Garamond распространяются по лицензии SIL OFL. Фон — иллюстрация Леры.</p>
-<p class="note">Разработчик <a href="https://t.me/Eds_spb" target="_blank" rel="noopener">@Eds_spb</a></p>
+<p class="note">Шрифты Marck Script и Cormorant Garamond — лицензия SIL OFL.</p>
+<p class="note"><span id="verNote"></span> Разработчик <a href="https://t.me/Eds_spb" target="_blank" rel="noopener">@Eds_spb</a></p>
 </footer>
 </div>
 </div>
@@ -204,7 +223,7 @@ window.addEventListener('error',function(e){if(e.filename&&/settings\.js/.test(e
 (function(){
 var $=function(id){return document.getElementById(id)};
 if(typeof SETTINGS==='undefined'||typeof THEMES==='undefined'||!THEMES||!THEMES.length){$('app').style.display='none';$('fatal').style.display='block';$('fatalWhy').textContent=window.__settingsErr||'';return}
-var VERSION='0.4';
+var VERSION='0.4.1',BUILD='26.11.2026 08:28';
 var S=SETTINGS;
 
 /* ===== настройки с безопасными значениями по умолчанию ===== */
@@ -236,17 +255,26 @@ function utc(d){var p=d.split('-').map(Number);return Date.UTC(p[0],p[1]-1,p[2])
 function addDays(d,n){var t=new Date(utc(d)+n*86400000);return t.getUTCFullYear()+'-'+pad2(t.getUTCMonth()+1)+'-'+pad2(t.getUTCDate())}
 function daysBetween(a,b){return Math.round((utc(b)-utc(a))/86400000)}
 var ISO=/^\d{4}-\d{2}-\d{2}$/;
+function dmyHm(s){return s?dmy(s.slice(0,10))+(s.length>10?' '+s.slice(11,16):''):''}
+function pluralRec(n){var a=n%10,b=n%100;return (a===1&&b!==11)?'запись':(a>=2&&a<=4&&(b<12||b>14))?'записи':'записей'}
 
 /* ===== хранилище ===== */
 var KEY='esert:'+STORE_ID+':',mem={},storeOk=true,storeBad=false;
 function sget(k){try{var v=localStorage.getItem(KEY+k);return v==null?(mem[k]==null?null:mem[k]):v}catch(e){storeOk=false;return mem[k]==null?null:mem[k]}}
 function sset(k,v){mem[k]=v;try{localStorage.setItem(KEY+k,v);return true}catch(e){storeOk=false;return false}}
-var reg=[],meta={lastBackupAt:'',unsaved:0,firstUnsavedAt:''};
+var reg=[],meta={lastBackupAt:'',unsaved:0,firstUnsavedAt:'',emptyOk:false};
 function loadAll(){
  var raw=sget('register');
- if(raw){try{var o=JSON.parse(raw);reg=Array.isArray(o.items)?o.items:[]}catch(e){storeBad=true;sset('register.bad',raw);reg=[]}}
- var m=sget('meta');if(m){try{var mo=JSON.parse(m);meta.lastBackupAt=String(mo.lastBackupAt||'');meta.unsaved=natInt(mo.unsaved,0);meta.firstUnsavedAt=String(mo.firstUnsavedAt||'')}catch(e){}}
+ if(raw){try{var o=JSON.parse(raw);reg=Array.isArray(o.items)?o.items.map(normalize):[]}catch(e){storeBad=true;sset('register.bad',raw);reg=[]}}
+ var m=sget('meta');if(m){try{var mo=JSON.parse(m);meta.lastBackupAt=String(mo.lastBackupAt||'');meta.unsaved=natInt(mo.unsaved,0);meta.firstUnsavedAt=String(mo.firstUnsavedAt||'');meta.emptyOk=!!mo.emptyOk}catch(e){}}
 }
+function normalize(c){
+ if(!Array.isArray(c.history))c.history=[];
+ if(c.note){c.history.push({at:(c.issuedAt||today())+' 00:00',action:'Заметка',text:String(c.note)});c.note=''}
+ return c;
+}
+function certStamp(c){var m=c.issuedAt+' 00:00';(c.history||[]).forEach(function(x){if(x.at>m)m=x.at});return m}
+function lastChange(list){var m='';list.forEach(function(c){var s=certStamp(c);if(s>m)m=s});return m}
 function saveAll(){var a=sset('register',JSON.stringify({v:1,items:reg})),b=sset('meta',JSON.stringify(meta));return a&&b}
 function changed(){
  if(meta.unsaved===0)meta.firstUnsavedAt=today();
@@ -260,6 +288,8 @@ function idOf(n){return PREFIX+'-'+pad2(n)}
 function find(id){for(var i=0;i<reg.length;i++)if(reg[i].id===id)return reg[i];return null}
 function nextFree(){for(var n=1;n<=99;n++)if(!find(idOf(n)))return n;return 0}
 function hist(c,action,text){c.history.push({at:nowStamp(),action:action,text:text||''})}
+var toastTm=null;
+function toast(t){var e=$('toast');e.textContent=t;e.classList.add('on');clearTimeout(toastTm);toastTm=setTimeout(function(){e.classList.remove('on')},2800)}
 function certState(c){
  if(c.status==='used')return {key:'used',cls:'s-gray',label:'Использован',short:'использован'};
  if(c.status==='annulled')return {key:'annul',cls:'s-gray',label:'Аннулирован',short:'аннулирован'};
@@ -283,8 +313,8 @@ function clear(e){while(e.firstChild)e.removeChild(e.firstChild)}
 /* ===== сообщения ===== */
 function say(t,err){var m=$('msg');m.textContent=t;m.className='msg '+(err?'err':'ok')}
 function sayTo(id,t,err){var m=$(id);m.textContent=t;m.className='msg '+(err?'err':'ok')}
-function copyText(t,okMsg,target){
- function done(ok){sayTo(target||'msg',ok?okMsg:'Не удалось скопировать: выделите текст вручную.',!ok)}
+function copyText(t,okMsg,target,useToast){
+ function done(ok){var m=ok?okMsg:'Не удалось скопировать: выделите текст вручную.';if(useToast)toast(m);else sayTo(target||'msg',m,!ok);if(useToast&&target)sayTo(target,ok?'':m,!ok)}
  function fallback(){var ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();var ok=false;try{ok=document.execCommand('copy')}catch(e){}ta.remove();done(ok)}
  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(function(){done(true)},fallback);else fallback();
 }
@@ -342,9 +372,15 @@ function loadSrc(src){
 
 /* ===== форма ===== */
 function kind(){return document.querySelector('input[name=kind]:checked').value}
+var mode='new',viewId='',viewFrom='',imageSaved=false;
+function themeIndex(name){for(var i=0;i<THEMES.length;i++)if(THEMES[i].name===name)return i;return -1}
 function formState(){
- var date=$('date').value||today(),nn=parseInt($('nn').value,10),ti=parseInt($('theme').value,10)||0;
- return {ti:ti,to:$('to').value.trim(),from:$('from').value.trim(),massage:$('massage').value,date:date,
+ if(mode==='view'){
+  var c=find(viewId);
+  if(c){var ti=themeIndex(c.theme);var m=/-(\d{2})$/.exec(c.id);return {ti:ti<0?0:ti,to:c.to,from:c.from,massage:c.massage,date:c.issuedAt,till:c.till,nn:m?parseInt(m[1],10):0,num:c.id}}
+ }
+ var date=$('date').value||today(),nn=parseInt($('nn').value,10),ti2=parseInt($('theme').value,10)||0;
+ return {ti:ti2,to:$('to').value.trim(),from:$('from').value.trim(),massage:$('massage').value,date:date,
   till:DAYS>0?addDays(date,DAYS):'',nn:(nn>=1&&nn<=99)?nn:0,num:(nn>=1&&nn<=99)?idOf(nn):''};
 }
 var renderSeq=0;
@@ -395,8 +431,8 @@ var tm=null;function sched(){clearTimeout(tm);if(kind()!=='e'||currentTab!=='iss
 function caption(st){
  var h2=String(S.handle||'').replace(/^@/,'');
  var l=['Подарочный сертификат № '+st.num,'Для: '+st.to+(st.from?' (от '+st.from+')':''),'1,5 часа: знакомство и сеанс','Вид массажа: '+(st.massage?(MASS_DISP[st.massage]||st.massage):'выберете при записи')];
- if(st.till)l.push('Записаться до '+dmy(st.till));
- if(h2)l.push('Записаться: https://t.me/'+h2);
+ var book=(st.till?'Записаться до '+dmy(st.till):'Записаться')+(h2?': https://t.me/'+h2:'');
+ if(st.till||h2)l.push(book);
  if(TERMS_URL)l.push('Условия: '+TERMS_URL);
  return l.join('\n');
 }
@@ -417,9 +453,9 @@ async function saveFile(){
   var name='certificate_'+st.num+'.jpg';
   var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href)},4000);
   var file=new File([blob],name,{type:'image/jpeg'}),can=IS_MOBILE&&navigator.canShare&&navigator.canShare({files:[file]});
-  lastFile={file:file,text:caption(st)};
+  lastFile={file:file,text:caption(st)};imageSaved=true;
   $('btnShareNow').classList.toggle('hidden',!can);
-  var tail=find(st.num)?'':' Не забудьте нажать «Записать в учёт».';
+  var tail=find(st.num)?'':' Последний шаг: «записать в учёт».';
   say((can?'Картинка сохранена: '+name+'. Нажмите «Отправить сертификат…», чтобы переслать её.':'Картинка сохранена: '+name+' (папка «Загрузки»). Отправьте её в Telegram: скрепка → «Файл».')+tail);
  }catch(e){
   if(e&&e.name==='SecurityError')say('Браузер не разрешает сохранять картинку, когда страница открыта прямо из папки. Откройте генератор по интернет-ссылке (см. инструкцию).',1);
@@ -433,13 +469,37 @@ async function shareNow(){
 
 /* номер: подсказка, подстановка, проверка занятости */
 var nnAuto=true;
-function setNextNumber(){var n=nextFree();if(nnAuto&&n)$('nn').value=n;updateNnInfo()}
+function setNextNumber(){var n=nextFree();if(nnAuto&&n&&mode==='new')$('nn').value=pad2(n);updateNnInfo()}
+function emptyRisk(){return reg.length===0&&!meta.emptyOk}
 function updateNnInfo(){
- var n=nextFree(),hint=$('nnHint'),warn=$('nnWarn');
- hint.textContent=n?'Следующий свободный номер: '+pad2(n)+' (подставлен автоматически; можно изменить)':'Все 99 номеров с префиксом '+PREFIX+' заняты: смените префикс в настройках.';
+ var hint=$('nnHint'),warn=$('nnWarn');
+ if(mode==='view'){hint.textContent='';warn.textContent='';return}
+ var n=nextFree();
+ hint.textContent=n?'Следующий свободный номер: '+pad2(n)+' (подставлен автоматически; можно изменить)'+(emptyRisk()?'. Учёт на этом устройстве пуст: если сертификаты выпускались на другом устройстве, загрузите копию (вкладка «Ещё»), иначе номера могут повториться.':''):'Все 99 номеров с префиксом '+PREFIX+' заняты: смените префикс в настройках.';
  var st=formState(),ex=st.num?find(st.num):null;
- if(ex){warn.textContent='Номер '+ex.id+' уже есть в учёте: выдан '+dmy(ex.issuedAt)+(ex.to?' для «'+ex.to+'»':'')+' ('+certState(ex).label.toLowerCase()+'). Выберите другой номер.'}else warn.textContent='';
+ warn.textContent=ex?'Номер '+ex.id+' уже есть в учёте: выдан '+dmy(ex.issuedAt)+(ex.to?' для «'+ex.to+'»':'')+' ('+certState(ex).label.toLowerCase()+'). Выберите другой номер.':'';
  $('btnRec').disabled=!!ex;
+}
+var LOCKABLE=['theme','to','from','massage','date','nn'];
+function setLocked(on){LOCKABLE.forEach(function(id){$(id).disabled=on});Array.prototype.forEach.call(document.querySelectorAll('input[name=kind]'),function(r){r.disabled=on})}
+function enterView(c,from){
+ mode='view';viewId=c.id;viewFrom=from;imageSaved=false;hideShare();
+ var ti=themeIndex(c.theme);$('theme').value=String(ti<0?0:ti);$('to').value=c.to;$('from').value=c.from;$('massage').value=c.massage;$('date').value=c.issuedAt;
+ var m=/-(\d{2})$/.exec(c.id);$('nn').value=m?m[1]:'';$('pfx').textContent=c.id.slice(0,c.id.length-2);
+ document.querySelector('input[name=kind][value='+c.kind+']').checked=true;
+ setLocked(true);
+ var d=$('doneBox');d.classList.remove('hidden');
+ d.textContent=from==='new'?'Записано в учёт: '+c.id+'. Картинка и подпись остались ниже: сохраните и отправьте их, затем нажмите «Новый сертификат».':'Сертификат '+c.id+' из учёта (только просмотр). На картинке срок: до '+(c.till?dmy(c.till):'без срока')+'.';
+ $('btnRec').classList.add('hidden');$('btnNew').classList.remove('hidden');$('btnNew').textContent=from==='new'?'Новый сертификат':'Начать новый сертификат';
+ $('btnBackReg').classList.toggle('hidden',from!=='reg');
+ say('');upd();updateNnInfo();applyKind();
+}
+function newCert(){
+ mode='new';viewId='';viewFrom='';imageSaved=false;hideShare();setLocked(false);
+ $('pfx').textContent=PREFIX+'-';
+ $('to').value='';$('from').value='';$('massage').value='';$('date').value=today();nnAuto=true;
+ $('doneBox').classList.add('hidden');$('btnRec').classList.remove('hidden');$('btnNew').classList.add('hidden');$('btnBackReg').classList.add('hidden');
+ say('');setNextNumber();upd();applyKind();sched();
 }
 function recordIssue(){
  var st=formState();if(!needNum(st,true))return;
@@ -448,43 +508,57 @@ function recordIssue(){
  var c={id:st.num,kind:k,issuedAt:st.date,to:st.to,from:st.from,theme:k==='e'?(T.name||''):'',massage:st.massage,till:st.till,status:'issued',usedAt:'',annulledAt:'',annulReason:'',extended:0,tillOrig:'',note:'',history:[]};
  hist(c,'Выдан',k==='e'?'электронный':'бумажный');
  reg.push(c);askPersist();changed();
- say('Записано в учёт: '+c.id+'.');
- $('to').value='';$('from').value='';$('massage').value='';$('date').value=today();nnAuto=true;setNextNumber();hideShare();upd();sched();
+ enterView(c,'new');
+ if(k==='paper')$('doneBox').textContent='Бумажный сертификат '+c.id+' записан в учёт. Когда будете готовы — нажмите «Новый сертификат».';
+ toast('Записано в учёт: '+c.id);
  if(!saveAll())refreshStoreWarn();
 }
 function upd(){var st=formState();$('tillNote').textContent=st.till?'Записаться до '+dmy(st.till)+' (мягкий срок: после этой даты — по договорённости).':'Срок не указан.'}
 function applyKind(){
  var paper=kind()==='paper';
- $('imgBtns').classList.toggle('hidden',paper);$('imgNote').classList.toggle('hidden',paper);$('previewBox').classList.toggle('hidden',paper);$('theme-wrap').classList.toggle('hidden',paper);
- $('btnRec').textContent=paper?'Записать бумажный в учёт':'Записать в учёт';
- $('tab-issue').style.gridTemplateColumns=paper?'1fr':'';
+ $('imgBtns').classList.toggle('hidden',paper);$('imgNote').classList.toggle('hidden',paper||mode==='view');$('previewBox').classList.toggle('hidden',paper);$('theme-wrap').classList.toggle('hidden',paper);
+ $('btnRec').textContent=paper?'Последний шаг: записать бумажный в учёт':'Последний шаг: записать в учёт';
+ $('tab-issue').classList.toggle('paper',paper);
  sched();
 }
 
 /* ============================================================
    РЕЕСТР
    ============================================================ */
-var sel='',currentTab='issue',annulOpen=false,tillOpen=false;
+var sel='',currentTab='issue';
 function sortedCerts(){return reg.slice().sort(function(a,b){return a.id<b.id?-1:a.id>b.id?1:0})}
+function regMsg(t,err){toast(t);sayTo('qMsg',err?t:'',err)}
+function renderStats(){
+ var n={all:reg.length,e:0,p:0,an:0,used:0,act:0,warn:0,late:0};
+ reg.forEach(function(c){if(c.kind==='paper')n.p++;else n.e++;var k=certState(c).key;if(k==='annul')n.an++;else if(k==='used')n.used++;else if(k==='late')n.late++;else{n.act++;if(k==='warn')n.warn++}});
+ var box=$('stats');clear(box);
+ [[n.all,'выпущено всего (электронных '+n.e+', бумажных '+n.p+')'],[n.an,'аннулировано'],[n.used,'использовано'],[n.act,'действуют (скоро истекают: '+n.warn+')'],[n.late,'просрочено']].forEach(function(x){box.appendChild(h('div',{class:'stat'},[h('b',{text:String(x[0])}),h('span',{text:x[1]})]))});
+ $('lastChg').textContent=reg.length?'Последнее изменение учёта на этом устройстве: '+dmyHm(lastChange(reg))+'.':'';
+}
+function chipList(){var onlyAttn=$('attn').checked;return sortedCerts().filter(function(c){if(!onlyAttn)return true;var k=certState(c).key;return k==='warn'||k==='late'})}
 function renderStrip(){
- var strip=$('strip'),onlyAttn=$('attn').checked,list=sortedCerts().filter(function(c){if(!onlyAttn)return true;var k=certState(c).key;return k==='warn'||k==='late'});
+ var strip=$('strip'),left=strip.scrollLeft,list=chipList();
  clear(strip);
  list.forEach(function(c){
-  var s=certState(c),m=/-(\d{2})$/.exec(c.id),pfx=c.id.slice(0,c.id.length-3);
-  strip.appendChild(h('button',{type:'button',class:'chip '+s.cls+(c.id===sel?' sel':''),'data-id':c.id,'aria-pressed':c.id===sel?'true':'false',title:c.id+' — '+s.label,'aria-label':'Сертификат '+c.id+': '+s.label,onclick:function(){selectCert(c.id,false)}},[
-   pfx!==PREFIX?h('span',{class:'cp',text:pfx}):null,h('span',{class:'cn',text:m?m[1]:c.id}),h('span',{class:'cs',text:s.short})]));
+  var s=certState(c),m=/-(\d{2})$/.exec(c.id),pfx=c.id.slice(0,c.id.length-3),paper=c.kind==='paper';
+  strip.appendChild(h('button',{type:'button',class:'chip '+s.cls+(paper?' paper':'')+(c.id===sel?' sel':''),'data-id':c.id,'aria-pressed':c.id===sel?'true':'false',title:c.id+' — '+(paper?'бумажный':'электронный')+' — '+s.label,'aria-label':'Сертификат '+c.id+', '+(paper?'бумажный':'электронный')+': '+s.label,onclick:function(){selectCert(c.id,false)}},[
+   h('span',{class:'ck',text:(pfx!==PREFIX?pfx+' · ':'')+(paper?'бум.':'эл.')}),h('span',{class:'cn',text:m?m[1]:c.id}),h('span',{class:'cs',text:s.short})]));
  });
+ strip.scrollLeft=left;
  var e=$('empty');
  e.textContent=!reg.length?'В учёте пока нет сертификатов. Они появятся здесь после «Записать в учёт» на вкладке «Выпустить».':(!list.length?'Нет сертификатов, которые требуют внимания.':'');
  $('prev').disabled=$('next').disabled=!list.length;
+ if(sel&&!list.some(function(c){return c.id===sel})){sel='';renderDetail()}
 }
+function markSel(){Array.prototype.forEach.call($('strip').querySelectorAll('.chip'),function(b){var on=b.getAttribute('data-id')===sel;b.classList.toggle('sel',on);b.setAttribute('aria-pressed',on?'true':'false')})}
 function selectCert(id,scroll){
- sel=id;annulOpen=false;tillOpen=false;renderStrip();renderDetail();
- if(scroll!==false){var el=$('strip').querySelector('[data-id="'+id+'"]');if(el&&el.scrollIntoView)el.scrollIntoView({inline:'center',block:'nearest'})}
+ sel=id;markSel();renderDetail();
+ if(scroll){var el=$('strip').querySelector('[data-id="'+id+'"]');if(el&&el.scrollIntoView)el.scrollIntoView({inline:'center',block:'nearest'})}
 }
 function row(dt,dd){return [h('dt',{text:dt}),h('dd',null,[typeof dd==='string'?document.createTextNode(dd):dd])]}
+function openPanel(p,others){others.forEach(function(o){o.classList.add('hidden')});p.classList.toggle('hidden');if(!p.classList.contains('hidden')){p.scrollIntoView({block:'center',behavior:'smooth'});var f=p.querySelector('input,select,textarea');if(f)setTimeout(function(){try{f.focus({preventScroll:true})}catch(e){f.focus()}},250)}}
 function renderDetail(){
- var box=$('detail');clear(box);
+ var y=window.scrollY,box=$('detail');clear(box);
  var c=sel?find(sel):null;
  if(!c){return}
  var s=certState(c);
@@ -505,69 +579,67 @@ function renderDetail(){
  box.appendChild(h('hr',{style:'border:0;border-top:1px solid var(--line);margin:14px 0'}));
  box.appendChild(h('h2',{text:'Сертификат '+c.id}));
  box.appendChild(dl);
- var ta=h('textarea',{id:'noteTa',maxlength:'500',placeholder:'Заметка (необязательно)'});ta.value=c.note||'';
- ta.addEventListener('change',function(){if(c.note!==ta.value){c.note=ta.value;changed()}});
- box.appendChild(h('label',{for:'noteTa',text:'Заметка'}));box.appendChild(ta);
- if(c.history.length){var ul=h('ul',{class:'hist'});c.history.forEach(function(x){ul.appendChild(h('li',{text:x.at+' — '+x.action+(x.text?': '+x.text:'')}))});box.appendChild(h('div',{class:'note',style:'margin-top:10px',text:'История'}));box.appendChild(ul)}
- var acts=h('div',{class:'acts'});
+ if(c.kind!=='paper')box.appendChild(h('button',{type:'button',class:'sec',text:'Показать сертификат (картинка) для сохранения',onclick:function(){enterView(c,'reg');showTab('issue');window.scrollTo(0,0)}}));
+ var acts=h('div',{class:'acts'}),annP=h('div',{class:'panel hidden'}),tillP=h('div',{class:'panel hidden'});
  if(c.status==='issued'){
-  acts.appendChild(h('button',{type:'button',text:'Использован',onclick:function(){c.status='used';c.usedAt=today();hist(c,'Использован','');changed();selectCert(c.id,false);regMsg('Отмечено: '+c.id+' использован.')}}));
+  acts.appendChild(h('button',{type:'button',text:'Использован',onclick:function(){c.status='used';c.usedAt=today();hist(c,'Использован','');changed();renderStrip();renderDetail();regMsg('Отмечено: '+c.id+' использован.')}}));
   var canExt=!c.extended&&!!c.till&&EXTEND>0;
-  var bExt=h('button',{type:'button',class:'sec',text:'Продлить на '+EXTEND+' дн.',disabled:canExt?false:'disabled',onclick:function(){doExtend(c)}});
-  acts.appendChild(bExt);
-  acts.appendChild(h('button',{type:'button',class:'sec',text:'Изменить срок…',onclick:function(){tillOpen=!tillOpen;annulOpen=false;renderDetail()}}));
-  acts.appendChild(h('button',{type:'button',class:'sec',text:'Аннулировать…',onclick:function(){annulOpen=!annulOpen;tillOpen=false;renderDetail()}}));
+  acts.appendChild(h('button',{type:'button',class:'sec',text:'Продлить на '+EXTEND+' дн.',disabled:canExt?false:'disabled',onclick:function(){doExtend(c)}}));
+  acts.appendChild(h('button',{type:'button',class:'sec',text:'Изменить срок…',onclick:function(){openPanel(tillP,[annP])}}));
+  acts.appendChild(h('button',{type:'button',class:'sec',text:'Аннулировать…',onclick:function(){openPanel(annP,[tillP])}}));
  }else{
   acts.appendChild(h('button',{type:'button',class:'sec',text:'Вернуть в «Выдан»',onclick:function(){
    if(!window.confirm('Вернуть сертификат '+c.id+' в статус «Выдан»?'))return;
-   c.status='issued';c.usedAt='';c.annulledAt='';c.annulReason='';hist(c,'Возвращён в «Выдан»','');changed();selectCert(c.id,false);regMsg('Сертификат '+c.id+' снова «Выдан».')}}));
+   c.status='issued';c.usedAt='';c.annulledAt='';c.annulReason='';hist(c,'Возвращён в «Выдан»','');changed();renderStrip();renderDetail();regMsg('Сертификат '+c.id+' снова «Выдан».')}}));
  }
  box.appendChild(acts);
  if(c.status==='issued'&&c.extended)box.appendChild(h('div',{class:'note',text:'Продление уже использовано.'}));
  if(c.status==='issued'&&!c.extended&&!c.till)box.appendChild(h('div',{class:'note',text:'У сертификата нет срока: продлевать нечего.'}));
  if(c.status==='issued'&&!c.extended&&c.till&&EXTEND===0)box.appendChild(h('div',{class:'note',text:'Продление отключено в настройках (extendDays = 0).'}));
- if(annulOpen&&c.status==='issued'){
-  var sr=h('select',{id:'annR'},Object.keys(REASONS).map(function(k){return h('option',{value:k,text:REASONS[k]})}));
-  var nt=h('input',{id:'annN',maxlength:'200',placeholder:'Пояснение (необязательно)'});
-  box.appendChild(h('div',{class:'panel'},[h('b',{text:'Аннулировать '+c.id}),h('div',{class:'note',text:'Номер больше не будет использован повторно.'}),h('label',{for:'annR',text:'Причина'}),sr,h('label',{for:'annN',text:'Пояснение'}),nt,
-   h('button',{type:'button',text:'Подтвердить аннулирование',onclick:function(){c.status='annulled';c.annulledAt=today();c.annulReason=sr.value;hist(c,'Аннулирован',(REASONS[sr.value]||'')+(nt.value?' — '+nt.value:''));annulOpen=false;changed();selectCert(c.id,false);regMsg('Сертификат '+c.id+' аннулирован.')}})]));
- }
- if(tillOpen&&c.status==='issued'){
-  var di=h('input',{id:'tD',type:'date'});di.value=c.till||today();
-  var rs=h('input',{id:'tR',maxlength:'200',placeholder:'Причина (обязательно)'});
-  box.appendChild(h('div',{class:'panel'},[h('b',{text:'Изменить срок вручную'}),h('label',{for:'tD',text:'Новая дата «действует до»'}),di,h('label',{for:'tR',text:'Причина'}),rs,
-   h('button',{type:'button',text:'Сохранить срок',onclick:function(){
-    if(!ISO.test(di.value)){regMsg('Укажите дату.',1);return}
-    if(!rs.value.trim()){regMsg('Впишите причину: она попадёт в историю.',1);rs.focus();return}
-    var old=c.till;c.till=di.value;hist(c,'Срок изменён вручную',(old?dmy(old)+' → ':'')+dmy(di.value)+' — '+rs.value.trim());tillOpen=false;changed();selectCert(c.id,false);regMsg('Срок изменён.')}})]));
- }
- var msgs=h('div',{class:'panel'},[h('b',{text:'Сообщение получателю (копируется)'}),
-  h('div',{class:'acts'},[
-   h('button',{type:'button',class:'sec',text:'Продление',onclick:function(){copyText(fillTpl(MSG.extend,c),'Текст скопирован.','qMsg')}}),
-   h('button',{type:'button',class:'sec',text:'Напоминание',onclick:function(){copyText(fillTpl(MSG.remind,c),'Текст скопирован.','qMsg')}}),
-   h('button',{type:'button',class:'sec',text:'Аннуляция',onclick:function(){copyText(fillTpl(MSG.annul,c),'Текст скопирован.','qMsg')}})])]);
- box.appendChild(msgs);
+ var sr=h('select',{id:'annR'},Object.keys(REASONS).map(function(k){return h('option',{value:k,text:REASONS[k]})}));
+ var nt=h('input',{id:'annN',maxlength:'200',placeholder:'Пояснение (необязательно)'});
+ [h('b',{text:'Аннулировать '+c.id}),h('div',{class:'note',text:'Номер больше не будет использован повторно.'}),h('label',{for:'annR',text:'Причина'}),sr,h('label',{for:'annN',text:'Пояснение'}),nt,
+  h('button',{type:'button',text:'Подтвердить аннулирование',onclick:function(){c.status='annulled';c.annulledAt=today();c.annulReason=sr.value;hist(c,'Аннулирован',(REASONS[sr.value]||'')+(nt.value?' — '+nt.value:''));changed();renderStrip();renderDetail();regMsg('Сертификат '+c.id+' аннулирован.')}})].forEach(function(n){annP.appendChild(n)});
+ var di=h('input',{id:'tD',type:'date'});di.value=c.till||today();
+ var rs=h('input',{id:'tR',maxlength:'200',placeholder:'Причина (обязательно)'});
+ [h('b',{text:'Изменить срок вручную'}),h('label',{for:'tD',text:'Новая дата «действует до»'}),di,h('label',{for:'tR',text:'Причина'}),rs,
+  h('button',{type:'button',text:'Сохранить срок',onclick:function(){
+   if(!ISO.test(di.value)){regMsg('Укажите дату.',1);return}
+   if(!rs.value.trim()){regMsg('Впишите причину: она попадёт в историю.',1);rs.focus();return}
+   var old=c.till;c.till=di.value;hist(c,'Срок изменён вручную',(old?dmy(old)+' → ':'')+dmy(di.value)+' — '+rs.value.trim());changed();renderStrip();renderDetail();regMsg('Срок изменён.')}})].forEach(function(n){tillP.appendChild(n)});
+ box.appendChild(annP);box.appendChild(tillP);
+ /* сообщения */
+ var out=h('div',{class:'note',style:'white-space:pre-wrap;margin-top:8px'});
+ function msgBtn(label,tpl){return h('button',{type:'button',class:'sec',text:label,onclick:function(){var tx=fillTpl(tpl,c);out.textContent='Скопировано:\n'+tx;copyText(tx,'Текст «'+label+'» скопирован.','qMsg',true)}})}
+ box.appendChild(h('div',{class:'panel'},[h('b',{text:'Сообщение получателю (копируется)'}),h('div',{class:'acts'},[msgBtn('Продление',MSG.extend),msgBtn('Напоминание',MSG.remind),msgBtn('Аннуляция',MSG.annul)]),out]));
+ /* заметки и история вместе */
+ var ul=h('ul',{class:'hist'});c.history.forEach(function(x){ul.appendChild(h('li',{text:x.at+' — '+x.action+(x.text?': '+x.text:'')}))});
+ var ni=h('input',{id:'noteIn',maxlength:'300',placeholder:'Новая заметка'});
+ function addNote(){var v=ni.value.trim();if(!v)return;hist(c,'Заметка',v);changed();renderDetail();regMsg('Заметка добавлена.')}
+ ni.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();addNote()}});
+ box.appendChild(h('div',{class:'panel'},[h('b',{text:'Заметки и история'}),c.history.length?ul:h('div',{class:'note',text:'Пока пусто.'}),ni,h('button',{type:'button',class:'sec',text:'Добавить заметку',onclick:addNote})]));
+ window.scrollTo(0,y);
 }
 function doExtend(c){
  if(c.extended||!c.till||EXTEND<=0)return;
- c.tillOrig=c.till;c.till=addDays(c.till,EXTEND);c.extended=1;hist(c,'Продлён','до '+dmy(c.till));changed();selectCert(c.id,false);
- regMsg('Продлено до '+dmy(c.till)+'.'+(daysBetween(today(),c.till)<0?' Внимание: срок всё равно истёк.':''),daysBetween(today(),c.till)<0);
+ c.tillOrig=c.till;c.till=addDays(c.till,EXTEND);c.extended=1;hist(c,'Продлён','до '+dmy(c.till));changed();renderStrip();renderDetail();
+ var late=daysBetween(today(),c.till)<0;
+ regMsg('Продлено до '+dmy(c.till)+'.'+(late?' Внимание: срок всё равно истёк.':''),late);
 }
-function regMsg(t,err){sayTo('qMsg',t,err)}
 function searchNum(){
- var v=$('q').value.trim();if(!v){regMsg('');return}
+ var v=$('q').value.trim();if(!v){sayTo('qMsg','');return}
  var m=/-(\d{1,2})$/.exec(v)||/^(\d{1,2})$/.exec(v);
- if(!m){regMsg('Введите номер: одна или две цифры.',1);return}
+ if(!m){sayTo('qMsg','Введите номер: одна или две цифры.',1);return}
  var nn=pad2(parseInt(m[1],10)),id=idOf(parseInt(m[1],10)),c=find(id);
  if(!c){var any=reg.filter(function(x){return x.id.slice(-2)===nn});if(any.length)c=any[0]}
- if(c){regMsg('');if($('attn').checked&&!/(warn|late)/.test(certState(c).key)){$('attn').checked=false}selectCert(c.id,true)}
- else if(v.length>=2||/-/.test(v)){regMsg('Сертификат с номером '+nn+' в учёте не найден: он не выдавался или учёт неполный.',1)}
+ if(c){sayTo('qMsg','');if($('attn').checked&&!/(warn|late)/.test(certState(c).key)){$('attn').checked=false;renderStrip()}selectCert(c.id,true)}
+ else if(v.length>=2||/-/.test(v)){sayTo('qMsg','Сертификат с номером '+nn+' в учёте не найден: он не выдавался или учёт неполный.',1)}
 }
 function stripMove(dir){var s=$('strip');s.scrollBy({left:dir*Math.max(160,s.clientWidth*.8),behavior:'smooth'})}
 function stripKey(e){
  if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')return;
  var chips=Array.prototype.slice.call($('strip').querySelectorAll('.chip')),i=chips.indexOf(document.activeElement);
- if(i<0)return;e.preventDefault();var n=chips[i+(e.key==='ArrowRight'?1:-1)];if(n){n.focus();selectCert(n.getAttribute('data-id'),true);var el=$('strip').querySelector('[data-id="'+n.getAttribute('data-id')+'"]');if(el)el.focus()}
+ if(i<0)return;e.preventDefault();var n=chips[i+(e.key==='ArrowRight'?1:-1)];if(n){n.focus();selectCert(n.getAttribute('data-id'),true)}
 }
 
 /* ============================================================
@@ -579,7 +651,7 @@ function histToStr(a){return a.map(function(x){return [x.at,x.action,x.text].map
 function histFromStr(s){if(!s)return[];return s.split(' ¶ ').map(function(p){var a=p.split(' | ');return {at:a[0]||'',action:a[1]||'',text:a.slice(2).join(' | ')}})}
 function toCsv(){
  var lines=[COLS.join(';')];
- sortedCerts().forEach(function(c){lines.push(COLS.map(function(k){return esc(k==='history'?histToStr(c.history||[]):c[k])}).join(';'))});
+ sortedCerts().forEach(function(c){lines.push(COLS.map(function(k){return esc(k==='history'?histToStr(c.history||[]):(k==='note'?'':c[k]))}).join(';'))});
  return '﻿'+lines.join('\r\n')+'\r\n';
 }
 function parseCsv(text){
@@ -605,7 +677,9 @@ function csvToItems(text){
  ['id','issuedAt','to','status'].forEach(function(k){if(idx[k]==null)throw new Error('В файле нет столбца «'+k+'». Это не копия учёта.')});
  var items=[],seen={};
  for(var r=1;r<rows.length;r++){
-  var R=rows[r],g=function(k){return idx[k]==null?'':String(R[idx[k]]==null?'':R[idx[k]])},ln=r+1;
+  var R=rows[r];
+  if(R.length!==head.length)throw new Error('Строка '+(r+1)+': найдено столбцов '+R.length+' вместо '+head.length+'. Возможно, пропущен или лишний «;». Начало строки: «'+R.join(';').slice(0,60)+'…».');
+  var g=function(k){return idx[k]==null?'':String(R[idx[k]]==null?'':R[idx[k]])},ln=r+1;
   var id=g('id').trim();
   if(!/^.+-\d{2}$/.test(id)||/-00$/.test(id))throw new Error('Строка '+ln+': неверный номер «'+id+'».');
   if(seen[id])throw new Error('Строка '+ln+': номер '+id+' повторяется.');seen[id]=1;
@@ -613,7 +687,7 @@ function csvToItems(text){
   var c={id:id,kind:g('kind')==='paper'?'paper':'e',issuedAt:g('issuedAt').trim(),to:g('to'),from:g('from'),theme:g('theme'),massage:g('massage'),till:g('till').trim(),status:st,usedAt:g('usedAt').trim(),annulledAt:g('annulledAt').trim(),annulReason:g('annulReason').trim(),extended:g('extended').trim()==='1'?1:0,tillOrig:g('tillOrig').trim(),note:g('note'),history:histFromStr(g('history'))};
   ['issuedAt','till','usedAt','annulledAt','tillOrig'].forEach(function(k){if(c[k]!==''&&!ISO.test(c[k]))throw new Error('Строка '+ln+': дата в столбце «'+k+'» должна быть ГГГГ-ММ-ДД.')});
   if(!c.issuedAt)throw new Error('Строка '+ln+': не указана дата выдачи.');
-  items.push(c);
+  items.push(normalize(c));
  }
  return items;
 }
@@ -638,13 +712,23 @@ async function onFile(ev){
   var buf=await file.arrayBuffer(),text;
   try{text=new TextDecoder('utf-8',{fatal:true}).decode(buf)}catch(e){throw new Error('Файл не в кодировке UTF-8. Загрузите копию, сохранённую этим генератором.')}
   var items=csvToItems(text);pending=items;
-  var last=items.slice().sort(function(a,b){return a.issuedAt<b.issuedAt?1:-1})[0];
+  var dev={},fil={};reg.forEach(function(c){dev[c.id]=c});items.forEach(function(c){fil[c.id]=c});
+  var onlyDev=[],onlyFile=[],devNewer=[];
+  Object.keys(dev).forEach(function(id){if(!fil[id])onlyDev.push(id);else if(certStamp(dev[id])>certStamp(fil[id]))devNewer.push(id)});
+  Object.keys(fil).forEach(function(id){if(!dev[id])onlyFile.push(id)});
+  var lose=onlyDev.length+devNewer.length;
   panel.appendChild(h('b',{text:'Проверьте перед заменой'}));
-  panel.appendChild(h('p',{text:'В файле: '+items.length+' '+pluralRec(items.length)+(last?' (последний выпуск: '+dmy(last.issuedAt)+')':'')+'. Сейчас на этом устройстве: '+reg.length+' '+pluralRec(reg.length)+'.'}));
-  panel.appendChild(h('p',{class:'note',text:'«Заменить» заменит весь текущий учёт содержимым файла. Если на устройстве есть записи, которых нет в файле, сначала сохраните текущую копию.'}));
-  panel.appendChild(h('button',{type:'button',class:'sec',text:'Сначала сохранить текущую копию',onclick:saveBackup}));
-  panel.appendChild(h('button',{type:'button',text:'Заменить учёт содержимым файла',onclick:function(){
-   reg=pending;pending=null;meta.lastBackupAt=nowStamp();meta.unsaved=0;meta.firstUnsavedAt='';saveAll();sel='';clear(panel);panel.classList.add('hidden');refreshAll();setNextNumber();sayTo('bkMsg','Учёт восстановлен: '+reg.length+' '+pluralRec(reg.length)+'.')}}));
+  panel.appendChild(h('table',{class:'cmp'},[
+   h('tr',null,[h('th',{text:''}),h('th',{text:'Файл'}),h('th',{text:'Это устройство'})]),
+   h('tr',null,[h('td',{text:'Записей'}),h('td',{text:String(items.length)}),h('td',{text:String(reg.length)})]),
+   h('tr',null,[h('td',{text:'Последнее изменение'}),h('td',{text:dmyHm(lastChange(items))||'—'}),h('td',{text:dmyHm(lastChange(reg))||'—'})])]));
+  if(!reg.length)panel.appendChild(h('div',{class:'verdict good',text:'На этом устройстве учёта нет, терять нечего: можно заменить.'}));
+  else if(!lose)panel.appendChild(h('div',{class:'verdict good',text:'В файле есть все записи этого устройства, и они не старее: можно заменить.'+(onlyFile.length?' Добавятся записи из файла: '+onlyFile.slice(0,10).join(', ')+(onlyFile.length>10?'…':'')+'.':'')}));
+  else panel.appendChild(h('div',{class:'verdict bad',text:'Внимание: после замены на этом устройстве пропадёт то, чего нет в файле.'+(onlyDev.length?' Только здесь: '+onlyDev.slice(0,10).join(', ')+(onlyDev.length>10?'…':'')+'.':'')+(devNewer.length?' Здесь новее, чем в файле: '+devNewer.slice(0,10).join(', ')+(devNewer.length>10?'…':'')+'.':'')+' Сначала сохраните текущую копию.'}));
+  panel.appendChild(h('p',{class:'note',text:'Что проверять: число записей и дату последнего изменения. Если файл старее вашего последнего выпуска, это не самая свежая копия.'}));
+  panel.appendChild(h('button',{type:'button',class:lose?'':'sec',text:'Сначала сохранить текущую копию',onclick:saveBackup}));
+  panel.appendChild(h('button',{type:'button',class:lose?'sec':'',text:'Заменить учёт содержимым файла',onclick:function(){
+   reg=pending;pending=null;meta.lastBackupAt=nowStamp();meta.unsaved=0;meta.firstUnsavedAt='';meta.emptyOk=true;saveAll();sel='';clear(panel);panel.classList.add('hidden');if(mode==='new')nnAuto=true;refreshAll();setNextNumber();sayTo('bkMsg','Учёт восстановлен: '+reg.length+' '+pluralRec(reg.length)+'.');toast('Учёт восстановлен')}}));
   panel.appendChild(h('button',{type:'button',class:'sec',text:'Отмена',onclick:function(){pending=null;clear(panel);panel.classList.add('hidden');sayTo('bkMsg','Загрузка отменена. Учёт не изменён.')}}));
   panel.classList.remove('hidden');sayTo('bkMsg','');
  }catch(e){sayTo('bkMsg',e.message+' Текущий учёт не изменён.',1)}
@@ -659,19 +743,27 @@ function refreshBackupBanner(){
  b.appendChild(h('span',{text:'Не сохранено в копию учёта: '+meta.unsaved+' '+plural(meta.unsaved)+'. '+(meta.lastBackupAt?'Последняя копия: '+dmy(meta.lastBackupAt.slice(0,10))+'.':'Копию ещё не делали.')+(warn?' Пора сохранить копию.':'')}));
  b.appendChild(h('button',{type:'button',class:warn?'':'sec',text:'Сохранить копию учёта',onclick:saveBackup}));
 }
-function pluralRec(n){var a=n%10,b=n%100;return (a===1&&b!==11)?'запись':(a>=2&&a<=4&&(b<12||b>14))?'записи':'записей'}
 function plural(n){var a=n%10,b=n%100;return (a===1&&b!==11)?'изменение':(a>=2&&a<=4&&(b<12||b>14))?'изменения':'изменений'}
 function refreshMore(){
- $('bkInfo').textContent='В учёте: '+reg.length+' '+pluralRec(reg.length)+'. '+(meta.lastBackupAt?'Последняя копия: '+dmy(meta.lastBackupAt.slice(0,10))+' '+meta.lastBackupAt.slice(11)+'.':'Копию ещё не делали.')+' Учёт хранится только в этом браузере на этом устройстве: если данные сайта очистятся, восстановить их можно только из копии.';
- $('verNote').textContent='Версия '+VERSION+'. Все данные только в вашем браузере.';
+ $('bkInfo').textContent='В учёте: '+reg.length+' '+pluralRec(reg.length)+(reg.length?' (последнее изменение: '+dmyHm(lastChange(reg))+')':'')+'. '+(meta.lastBackupAt?'Последняя копия: '+dmyHm(meta.lastBackupAt)+'.':'Копию ещё не делали.')+' Учёт хранится только в этом браузере на этом устройстве: если данные сайта очистятся, восстановить их можно только из копии.';
+ $('verNote').textContent='Версия '+VERSION+' от '+BUILD+'. Все данные только в вашем браузере.';
  var mp=$('manualP');clear(mp);
  if(MANUAL_URL){var a=h('a',{href:MANUAL_URL,target:'_blank',rel:'noopener',text:'Инструкция'});mp.appendChild(a)}
  refreshStoreWarn();
 }
 function refreshStoreWarn(){$('storeWarn').textContent=storeBad?'Сохранённый учёт повреждён и не прочитан (его копия оставлена в браузере под ключом register.bad). Загрузите последнюю копию учёта.':(!storeOk?'Браузер не разрешает сохранять учёт на этом устройстве (возможно, приватный режим): записи сохранятся только до закрытия страницы. Сохраняйте копию учёта.':'')}
-function refreshAll(){refreshBackupBanner();refreshMore();renderStrip();renderDetail();updateNnInfo()}
+function refreshEmptyBanner(){
+ var b=$('emptyBn');clear(b);
+ if(!emptyRisk()){b.classList.add('hidden');return}
+ b.classList.remove('hidden');
+ b.appendChild(h('b',{text:'Учёт на этом устройстве пуст.'}));
+ b.appendChild(h('div',{text:'Если это первый запуск — ничего делать не нужно. Если вы уже выпускали сертификаты на другом устройстве, скачайте там копию учёта («Ещё» → «Сохранить копию учёта») и загрузите её здесь, иначе номера могут повториться. Версия страницы: '+VERSION+' от '+BUILD+'.'}));
+ b.appendChild(h('button',{type:'button',text:'Загрузить копию учёта',onclick:function(){showTab('more');$('bkFile').click()}}));
+ b.appendChild(h('button',{type:'button',class:'sec',text:'Это первый запуск, копий нет',onclick:function(){meta.emptyOk=true;saveAll();refreshAll()}}));
+}
+function refreshAll(){refreshEmptyBanner();refreshBackupBanner();refreshMore();renderStats();renderStrip();renderDetail();updateNnInfo()}
 function showTab(t){
- currentTab=t;
+ currentTab=t;window.scrollTo(0,0);
  ['issue','reg','more'].forEach(function(k){$('tab-'+k).classList.toggle('hidden',k!==t);$('t-'+k).setAttribute('aria-selected',k===t?'true':'false')});
  if(t==='issue'){applyKind()}
  if(t==='reg'){renderStrip();renderDetail()}
@@ -684,14 +776,16 @@ $('theme').value='0';
 $('date').value=today();$('pfx').textContent=PREFIX+'-';
 function onEdit(){hideShare();upd();updateNnInfo();sched()}
 ['theme','to','from','massage','date'].forEach(function(id){var el=$(id);el.addEventListener('input',onEdit);el.addEventListener('change',onEdit)});
-$('nn').addEventListener('input',function(){nnAuto=false;onEdit()});
-$('nn').addEventListener('change',function(){if($('nn').value===''){nnAuto=true;setNextNumber()}});
+$('nn').addEventListener('input',function(){var v=$('nn').value.replace(/\D/g,'').slice(0,2);if(v!==$('nn').value)$('nn').value=v;nnAuto=false;onEdit()});
+$('nn').addEventListener('blur',function(){var v=$('nn').value;if(v===''){nnAuto=true;setNextNumber()}else if(v.length===1&&v!=='0')$('nn').value=pad2(parseInt(v,10));updateNnInfo();sched()});
 Array.prototype.forEach.call(document.querySelectorAll('input[name=kind]'),function(r){r.addEventListener('change',applyKind)});
 Array.prototype.forEach.call(document.querySelectorAll('nav.tabs button'),function(b){b.addEventListener('click',function(){showTab(b.getAttribute('data-tab'))})});
 $('btnRec').addEventListener('click',recordIssue);
+$('btnNew').addEventListener('click',function(){newCert();window.scrollTo(0,0)});
+$('btnBackReg').addEventListener('click',function(){showTab('reg');if(viewId)selectCert(viewId,true)});
 $('btnSave').addEventListener('click',saveFile);
 $('btnShareNow').addEventListener('click',shareNow);
-$('btnCap').addEventListener('click',function(){var st=formState();if(!needNum(st,true))return;copyText(caption(st),'Подпись скопирована. Вставьте её в сообщение с картинкой.')});
+$('btnCap').addEventListener('click',function(){var st=formState();if(!needNum(st,true))return;copyText(caption(st),'Подпись скопирована. Вставьте её в сообщение с картинкой.',null,true)});
 $('q').addEventListener('input',searchNum);
 $('q').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();var v=$('q').value.trim();if(v&&/^\d$/.test(v)){$('q').value='0'+v}searchNum()}});
 $('attn').addEventListener('change',function(){renderStrip()});

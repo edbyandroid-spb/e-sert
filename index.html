@@ -52,19 +52,16 @@ nav.tabs button[aria-selected=true]{color:var(--olive);box-shadow:inset 0 3px 0 
 @media(min-width:900px){nav.tabs{position:static;border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:12px}}
 /* переключатель вида */
 .kind{display:flex;gap:8px}
-.kind label{flex:1;margin:0;font-weight:600;border:1px solid var(--gold);border-radius:10px;padding:10px;text-align:center;background:#fff;cursor:pointer}
-.kind input{position:absolute;opacity:0;width:1px;height:1px}
-.kind input:checked+span{color:var(--bg)}
-.kind label:has(input:checked){background:var(--olive);color:var(--bg)}
-.kind label:has(input:focus-visible){outline:2px solid #B99A5B;outline-offset:1px}
+.kind button{flex:1;margin:0;padding:10px;border:1px solid var(--gold);background:#fff;color:var(--olive);user-select:none;-webkit-user-select:none}
+.kind button.on{background:var(--olive);border-color:var(--olive);color:var(--bg)}
 /* копия учёта */
 .bk{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:12px;font-size:14px;background:var(--card)}
 .bk.warn{background:#FBEFC0;border-color:#C9A227;color:#4A3800}
 .bk button{margin-top:6px}
 /* реестр */
-.search{display:flex;gap:8px;align-items:end;flex-wrap:wrap}
-.search>div{flex:1;min-width:150px}
-.togl{display:flex;align-items:center;gap:8px;font-weight:600;font-size:14px;margin:8px 0 0}
+.search{display:flex;gap:10px;align-items:center;margin-top:8px}
+.search label{margin:0;white-space:nowrap}
+.search input{width:90px;flex:none;text-align:center}.togl{display:flex;align-items:center;gap:8px;font-weight:600;font-size:14px;margin:8px 0 0}
 .togl input{width:22px;height:22px;flex:none}
 .stripwrap{display:flex;align-items:stretch;gap:6px;margin:12px 0}
 .arrow{width:44px;flex:none;margin:0;padding:0;font-size:24px;min-height:72px}
@@ -132,11 +129,10 @@ textarea{min-height:64px;resize:vertical}
 <!-- ВЫПУСТИТЬ -->
 <section id="tab-issue" aria-labelledby="t-issue">
 <div class="card" id="formCard">
-<div class="kind" role="radiogroup" aria-label="Вид сертификата">
-<label><input type="radio" name="kind" value="e" checked><span>Электронный</span></label>
-<label><input type="radio" name="kind" value="paper"><span>Бумажный</span></label>
-</div>
-<div id="theme-wrap">
+    <div class="kind" role="radiogroup" aria-label="Вид сертификата">
+    <button type="button" data-kind="e" class="on" aria-pressed="true">Электронный</button>
+    <button type="button" data-kind="paper" aria-pressed="false">Бумажный</button>
+    </div><div id="theme-wrap">
 <label for="theme">Тема</label>
 <select id="theme"></select>
 </div>
@@ -184,10 +180,8 @@ textarea{min-height:64px;resize:vertical}
 <div class="stats" id="stats"></div>
 <div class="note" id="lastChg"></div>
 <div class="search">
-<div>
-<label for="q" style="margin-top:0">Номер сертификата <small>(две цифры)</small></label>
-<input id="q" type="text" inputmode="numeric" autocomplete="off" placeholder="Например, 07">
-</div>
+<label for="q">Номер сертификата</label>
+<input id="q" type="text" inputmode="numeric" maxlength="2" autocomplete="off" placeholder="07">
 </div>
 <label class="togl"><input type="checkbox" id="attn"> Только требующие внимания (жёлтые и красные)</label>
 <div class="msg err" id="qMsg" aria-live="polite"></div>
@@ -383,8 +377,10 @@ function loadSrc(src){
 }
 
 /* ===== форма ===== */
-function kind(){return document.querySelector('input[name=kind]:checked').value}
 var mode='new',viewId='',viewFrom='',imageSaved=false;
+var curKind='e';
+function kind(){return curKind}
+function setKind(k){curKind=k;Array.prototype.forEach.call(document.querySelectorAll('.kind button'),function(b){var on=b.getAttribute('data-kind')===k;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on?'true':'false')});applyKind()}
 function themeIndex(name){for(var i=0;i<THEMES.length;i++)if(THEMES[i].name===name)return i;return -1}
 function formState(){
  if(mode==='view'){
@@ -493,12 +489,12 @@ function updateNnInfo(){
  $('btnRec').disabled=!!ex;
 }
 var LOCKABLE=['theme','to','from','massage','date','nn'];
-function setLocked(on){LOCKABLE.forEach(function(id){$(id).disabled=on});Array.prototype.forEach.call(document.querySelectorAll('input[name=kind]'),function(r){r.disabled=on})}
+function setLocked(on){LOCKABLE.forEach(function(id){$(id).disabled=on});Array.prototype.forEach.call(document.querySelectorAll('.kind button'),function(b){b.disabled=on})}
 function enterView(c,from){
  mode='view';viewId=c.id;viewFrom=from;imageSaved=false;hideShare();
  var ti=themeIndex(c.theme);$('theme').value=String(ti<0?0:ti);$('to').value=c.to;$('from').value=c.from;$('massage').value=c.massage;$('date').value=c.issuedAt;
  var m=/-(\d{2})$/.exec(c.id);$('nn').value=m?m[1]:'';$('pfx').textContent=c.id.slice(0,c.id.length-2);
- document.querySelector('input[name=kind][value='+c.kind+']').checked=true;
+ setKind(c.kind);
  setLocked(true);
  var d=$('doneBox');d.classList.remove('hidden');
  d.textContent=from==='new'?'Записано в учёт: '+c.id+'. Картинка и подпись остались ниже: сохраните и отправьте их, затем нажмите «Новый сертификат».':'Сертификат '+c.id+' из учёта (только просмотр). На картинке срок: до '+(c.till?dmy(c.till):'без срока')+'.';
@@ -789,7 +785,7 @@ function onEdit(){say('');hideShare();upd();updateNnInfo();sched()}
 ['theme','to','from','massage','date'].forEach(function(id){var el=$(id);el.addEventListener('input',onEdit);el.addEventListener('change',onEdit)});
 $('nn').addEventListener('input',function(){var v=$('nn').value.replace(/\D/g,'').slice(0,2);if(v!==$('nn').value)$('nn').value=v;nnAuto=false;onEdit()});
 $('nn').addEventListener('blur',function(){var v=$('nn').value;if(v===''){nnAuto=true;setNextNumber()}else if(v.length===1&&v!=='0')$('nn').value=pad2(parseInt(v,10));updateNnInfo();sched()});
-Array.prototype.forEach.call(document.querySelectorAll('input[name=kind]'),function(r){r.addEventListener('change',applyKind)});
+Array.prototype.forEach.call(document.querySelectorAll('.kind button'),function(b){b.addEventListener('click',function(){if(!b.disabled)setKind(b.getAttribute('data-kind'))})});
 Array.prototype.forEach.call(document.querySelectorAll('nav.tabs button'),function(b){b.addEventListener('click',function(){showTab(b.getAttribute('data-tab'))})});
 $('btnRec').addEventListener('click',recordIssue);
 $('btnNew').addEventListener('click',function(){newCert();window.scrollTo(0,0)});
@@ -808,7 +804,7 @@ $('btnBkShare').addEventListener('click',shareBackup);
 $('btnBkLoad').addEventListener('click',function(){$('bkFile').click()});
 $('bkFile').addEventListener('change',onFile);
 try{if(IS_MOBILE&&navigator.canShare&&navigator.canShare({files:[new File(['x'],'a.csv',{type:'text/csv'})]}))$('btnBkShare').classList.remove('hidden')}catch(e){}
-if(window.TelegramWebviewProxy||window.TelegramWebview||window.TelegramWebviewProxyProto||/Telegram/i.test(navigator.userAgent)){$('tgBn').classList.remove('hidden')}
+if(window.TelegramWebviewProxy||window.TelegramWebview||window.TelegramWebviewProxyProto||/Telegram/i.test(navigator.userAgent)||/telegram/i.test(document.referrer||'')){$('tgBn').classList.remove('hidden')}
 setNextNumber();upd();refreshAll();applyKind();sched();
 })();
 </script>

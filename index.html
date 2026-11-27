@@ -80,6 +80,17 @@ nav.tabs button[aria-selected=true]{color:var(--olive);box-shadow:inset 0 3px 0 
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin:0 0 6px}
 .stat{border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:#fff}
 .stat b{display:block;font-size:20px;line-height:1.1}.stat span{font-size:12px;color:var(--olive2)}
+.bk.compact{border:0;padding:0;background:transparent}
+.bk.compact button{margin-top:0}
+button.bk-red{background:#B00020;border-color:#B00020;color:#fff}
+@media(max-width:600px){
+  .stats{display:block;border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:#fff;font-size:13px;line-height:1.5}
+  .stat{display:inline;border:0;padding:0;background:none}
+  .stat b{display:inline;font-size:14px;margin-right:3px}
+  .stat span{font-size:13px;color:var(--olive)}
+  .stat::after{content:" · ";color:var(--gold);font-weight:700}
+  .stat:last-child::after{content:""}
+}
 #toast{position:fixed;left:50%;transform:translateX(-50%);bottom:76px;max-width:92vw;background:var(--olive);color:var(--bg);padding:10px 16px;border-radius:14px;z-index:20;opacity:0;pointer-events:none;transition:opacity .2s;font-weight:600;text-align:center}
 #toast.on{opacity:1}
 @media(min-width:900px){#toast{bottom:24px}}
@@ -114,6 +125,7 @@ textarea{min-height:64px;resize:vertical}
 <button type="button" role="tab" id="t-reg" data-tab="reg" aria-selected="false">Реестр</button>
 <button type="button" role="tab" id="t-more" data-tab="more" aria-selected="false">Ещё</button>
 </nav>
+<div class="bk warn hidden" id="tgBn" role="alert">Вы открыли сайт внутри Telegram — Нажмите ⋮ справа вверху → «Открыть в браузере»</div>
 <div class="bk warn hidden" id="emptyBn" role="status"></div>
 <div class="bk hidden" id="bk" role="status"></div>
 
@@ -223,7 +235,7 @@ window.addEventListener('error',function(e){if(e.filename&&/settings\.js/.test(e
 (function(){
 var $=function(id){return document.getElementById(id)};
 if(typeof SETTINGS==='undefined'||typeof THEMES==='undefined'||!THEMES||!THEMES.length){$('app').style.display='none';$('fatal').style.display='block';$('fatalWhy').textContent=window.__settingsErr||'';return}
-var VERSION='0.4.1',BUILD='26.11.2026 08:28';
+var VERSION='v.261127';
 var S=SETTINGS;
 
 /* ===== настройки с безопасными значениями по умолчанию ===== */
@@ -515,6 +527,7 @@ function recordIssue(){
 }
 function upd(){var st=formState();$('tillNote').textContent=st.till?'Записаться до '+dmy(st.till)+' (мягкий срок: после этой даты — по договорённости).':'Срок не указан.'}
 function applyKind(){
+ say('');
  var paper=kind()==='paper';
  $('imgBtns').classList.toggle('hidden',paper);$('imgNote').classList.toggle('hidden',paper||mode==='view');$('previewBox').classList.toggle('hidden',paper);$('theme-wrap').classList.toggle('hidden',paper);
  $('btnRec').textContent=paper?'Последний шаг: записать бумажный в учёт':'Последний шаг: записать в учёт';
@@ -738,15 +751,13 @@ async function onFile(ev){
 function refreshBackupBanner(){
  var b=$('bk');clear(b);
  if(meta.unsaved<=0){b.classList.add('hidden');return}
- var ref=meta.lastBackupAt?meta.lastBackupAt.slice(0,10):meta.firstUnsavedAt,age=ref?daysBetween(ref,today()):0,warn=age>=BK_WARN;
- b.classList.remove('hidden');b.classList.toggle('warn',warn);
- b.appendChild(h('span',{text:'Не сохранено в копию учёта: '+meta.unsaved+' '+plural(meta.unsaved)+'. '+(meta.lastBackupAt?'Последняя копия: '+dmy(meta.lastBackupAt.slice(0,10))+'.':'Копию ещё не делали.')+(warn?' Пора сохранить копию.':'')}));
- b.appendChild(h('button',{type:'button',class:warn?'':'sec',text:'Сохранить копию учёта',onclick:saveBackup}));
+ b.classList.remove('hidden');b.classList.add('compact');
+ b.appendChild(h('button',{type:'button',class:'bk-red',text:'Сохранить копию учёта ('+meta.unsaved+' '+plural(meta.unsaved)+')',onclick:saveBackup}));
 }
 function plural(n){var a=n%10,b=n%100;return (a===1&&b!==11)?'изменение':(a>=2&&a<=4&&(b<12||b>14))?'изменения':'изменений'}
 function refreshMore(){
  $('bkInfo').textContent='В учёте: '+reg.length+' '+pluralRec(reg.length)+(reg.length?' (последнее изменение: '+dmyHm(lastChange(reg))+')':'')+'. '+(meta.lastBackupAt?'Последняя копия: '+dmyHm(meta.lastBackupAt)+'.':'Копию ещё не делали.')+' Учёт хранится только в этом браузере на этом устройстве: если данные сайта очистятся, восстановить их можно только из копии.';
- $('verNote').textContent='Версия '+VERSION+' от '+BUILD+'. Все данные только в вашем браузере.';
+ $('verNote').textContent=VERSION+'. Все данные только в вашем браузере.';
  var mp=$('manualP');clear(mp);
  if(MANUAL_URL){var a=h('a',{href:MANUAL_URL,target:'_blank',rel:'noopener',text:'Инструкция'});mp.appendChild(a)}
  refreshStoreWarn();
@@ -757,7 +768,7 @@ function refreshEmptyBanner(){
  if(!emptyRisk()){b.classList.add('hidden');return}
  b.classList.remove('hidden');
  b.appendChild(h('b',{text:'Учёт на этом устройстве пуст.'}));
- b.appendChild(h('div',{text:'Если это первый запуск — ничего делать не нужно. Если вы уже выпускали сертификаты на другом устройстве, скачайте там копию учёта («Ещё» → «Сохранить копию учёта») и загрузите её здесь, иначе номера могут повториться. Версия страницы: '+VERSION+' от '+BUILD+'.'}));
+ b.appendChild(h('div',{text:'Если это первый запуск — ничего делать не нужно. Если вы уже выпускали сертификаты на другом устройстве, скачайте там копию учёта («Ещё» → «Сохранить копию учёта») и загрузите её здесь, иначе номера могут повториться. '+VERSION+'.'}));
  b.appendChild(h('button',{type:'button',text:'Загрузить копию учёта',onclick:function(){showTab('more');$('bkFile').click()}}));
  b.appendChild(h('button',{type:'button',class:'sec',text:'Это первый запуск, копий нет',onclick:function(){meta.emptyOk=true;saveAll();refreshAll()}}));
 }
@@ -774,7 +785,7 @@ loadAll();
 THEMES.forEach(function(t,i){var o=document.createElement('option');o.value=i;o.textContent=t.name||('Тема '+(i+1));$('theme').appendChild(o)});
 $('theme').value='0';
 $('date').value=today();$('pfx').textContent=PREFIX+'-';
-function onEdit(){hideShare();upd();updateNnInfo();sched()}
+function onEdit(){say('');hideShare();upd();updateNnInfo();sched()}
 ['theme','to','from','massage','date'].forEach(function(id){var el=$(id);el.addEventListener('input',onEdit);el.addEventListener('change',onEdit)});
 $('nn').addEventListener('input',function(){var v=$('nn').value.replace(/\D/g,'').slice(0,2);if(v!==$('nn').value)$('nn').value=v;nnAuto=false;onEdit()});
 $('nn').addEventListener('blur',function(){var v=$('nn').value;if(v===''){nnAuto=true;setNextNumber()}else if(v.length===1&&v!=='0')$('nn').value=pad2(parseInt(v,10));updateNnInfo();sched()});
@@ -797,6 +808,7 @@ $('btnBkShare').addEventListener('click',shareBackup);
 $('btnBkLoad').addEventListener('click',function(){$('bkFile').click()});
 $('bkFile').addEventListener('change',onFile);
 try{if(IS_MOBILE&&navigator.canShare&&navigator.canShare({files:[new File(['x'],'a.csv',{type:'text/csv'})]}))$('btnBkShare').classList.remove('hidden')}catch(e){}
+if(window.TelegramWebviewProxy||window.TelegramWebview||window.TelegramWebviewProxyProto||/Telegram/i.test(navigator.userAgent)){$('tgBn').classList.remove('hidden')}
 setNextNumber();upd();refreshAll();applyKind();sched();
 })();
 </script>
